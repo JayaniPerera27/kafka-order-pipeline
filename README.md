@@ -7,11 +7,11 @@ Built for the Big Data Analytics take-home assignment.
 
 ## Features
 
-- **Avro Serialization** — Order messages are serialized/deserialized using Apache Avro with Confluent Schema Registry.
-- **Real-time Aggregation** — Consumer maintains a running average of order prices as messages arrive.
-- **Retry Logic** — Failed message processing is retried up to 3 times with backoff before being considered a permanent failure.
-- **Dead Letter Queue (DLQ)** — Messages that fail after all retries are routed to a separate `orders-dlq` topic instead of being dropped.
-- **Dockerized Infrastructure** — Kafka and Schema Registry run via Docker Compose, no manual installation required.
+- **Avro Serialization** - Order messages are serialized/deserialized using Apache Avro with Confluent Schema Registry.
+- **Real-time Aggregation** - Consumer maintains a running average of order prices as messages arrive.
+- **Retry Logic** - Failed message processing is retried up to 3 times with backoff before being considered a permanent failure.
+- **Dead Letter Queue (DLQ)** - Messages that fail after all retries are routed to a separate `orders-dlq` topic instead of being dropped.
+- **Dockerized Infrastructure** - Kafka and Schema Registry run via Docker Compose, no manual installation required.
 ---
 
 ## Tech Stack
@@ -134,11 +134,11 @@ In IntelliJ, use the Maven panel → `Lifecycle` → `compile`
 
 ### 5. Run the Consumer
 
-Run `OrderConsumer.java` first — it will start listening on the `orders` topic.
+Run `OrderConsumer.java` first - it will start listening on the `orders` topic.
 
 ### 6. Run the Producer
 
-Run `OrderProducer.java` — it sends 20 sample order messages with random products and prices to the `orders` topic.
+Run `OrderProducer.java` - it sends 20 sample order messages with random products and prices to the `orders` topic.
 
 ### 7. Observe the Consumer output
 
