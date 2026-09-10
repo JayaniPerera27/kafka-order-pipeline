@@ -21,6 +21,8 @@ public class OrderConsumer {
     private static final String TOPIC = "orders";
     private static final String DLQ_TOPIC = "orders-dlq";
     private static final int MAX_RETRIES = 3;
+    private static final String TRANSIENT_FAILURE_ORDER_ID = "1005";
+    private static final String PERMANENT_FAILURE_ORDER_ID = "1010";
 
     // Running average tracking
     private static long messageCount = 0;
@@ -74,7 +76,7 @@ public class OrderConsumer {
         while (attempt < MAX_RETRIES && !success) {
             attempt++;
             try {
-                processOrder(record.value());
+                processOrder(record.value(), attempt);
                 success = true;
             } catch (Exception e) {
                 System.out.printf("Attempt %d failed for order %s: %s%n",
@@ -99,11 +101,16 @@ public class OrderConsumer {
             dlqProducer.flush();
         }
     }
-    private static void processOrder(Order order) {
+    private static void processOrder(Order order, int attempt) {
+        String orderId = order.getOrderId().toString();
 
-        // --- Simulated temporary failure (demo purpose) ---
-        // Uncomment below to test retry logic on a random subset of messages:
-         if (Math.random() < 0.2) throw new RuntimeException("Simulated temporary failure");
+        // Deterministic demo cases: retry one order successfully and route one to the DLQ.
+        if (TRANSIENT_FAILURE_ORDER_ID.equals(orderId) && attempt == 1) {
+            throw new RuntimeException("Simulated temporary failure");
+        }
+        if (PERMANENT_FAILURE_ORDER_ID.equals(orderId)) {
+            throw new RuntimeException("Simulated permanent failure");
+        }
 
         messageCount++;
         totalPrice += order.getPrice();
