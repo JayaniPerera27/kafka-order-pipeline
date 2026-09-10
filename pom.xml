@@ -7,7 +7,7 @@
     <groupId>com.university</groupId>
     <artifactId>kafka-order-pipeline</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

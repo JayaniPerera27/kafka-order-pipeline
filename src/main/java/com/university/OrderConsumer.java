@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -21,6 +22,8 @@ public class OrderConsumer {
     private static final String TOPIC = "orders";
     private static final String DLQ_TOPIC = "orders-dlq";
     private static final int MAX_RETRIES = 3;
+    private static final String TRANSIENT_FAILURE_ORDER_ID = "1005";
+    private static final String PERMANENT_FAILURE_ORDER_ID = "1010";
 
     // Running average tracking
     private static long messageCount = 0;
@@ -74,7 +77,7 @@ public class OrderConsumer {
         while (attempt < MAX_RETRIES && !success) {
             attempt++;
             try {
-                processOrder(record.value());
+                processOrder(record.value(), attempt);
                 success = true;
             } catch (Exception e) {
                 System.out.printf("Attempt %d failed for order %s: %s%n",
@@ -95,15 +98,29 @@ public class OrderConsumer {
             System.out.printf("Order %s permanently failed. Sending to DLQ.%n", record.key());
             ProducerRecord<String, Order> dlqRecord =
                     new ProducerRecord<>(DLQ_TOPIC, record.key(), record.value());
-            dlqProducer.send(dlqRecord);
-            dlqProducer.flush();
+            try {
+                RecordMetadata metadata = dlqProducer.send(dlqRecord).get();
+                System.out.printf("Order %s sent to DLQ | partition=%d, offset=%d%n",
+                        record.key(), metadata.partition(), metadata.offset());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.printf("Interrupted while sending order %s to the DLQ.%n", record.key());
+            } catch (Exception e) {
+                System.err.printf("Failed to send order %s to the DLQ: %s%n",
+                        record.key(), e.getMessage());
+            }
         }
     }
-    private static void processOrder(Order order) {
+    private static void processOrder(Order order, int attempt) {
+        String orderId = order.getOrderId().toString();
 
-        // --- Simulated temporary failure (demo purpose) ---
-        // Uncomment below to test retry logic on a random subset of messages:
-         if (Math.random() < 0.2) throw new RuntimeException("Simulated temporary failure");
+        // Deterministic demo cases: retry one order successfully and route one to the DLQ.
+        if (TRANSIENT_FAILURE_ORDER_ID.equals(orderId) && attempt == 1) {
+            throw new RuntimeException("Simulated temporary failure");
+        }
+        if (PERMANENT_FAILURE_ORDER_ID.equals(orderId)) {
+            throw new RuntimeException("Simulated permanent failure");
+        }
 
         messageCount++;
         totalPrice += order.getPrice();
