@@ -171,7 +171,6 @@ To fully reset all data (topics, messages, offsets):
 `````bash
 docker compose down -v
 docker compose up -d
-````//then re-create the topics as in Step 3
  
 ---
  
