@@ -181,18 +181,4 @@ docker compose up -d
 docker compose down
 ```
  
----
- 
-## Demo Video
- 
-A live demonstration of this system (producer + consumer running, real-time aggregation, retry logic, and DLQ handling) is available here:
- 
-`[Add video link here]`
- 
----
- 
-## Author
- 
-M.A. Jayani Chamodi Perera
-Computer Engineering, University of Ruhuna
  
